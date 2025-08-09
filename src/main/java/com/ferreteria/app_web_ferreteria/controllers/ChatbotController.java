@@ -85,6 +85,11 @@ public class ChatbotController {
         int start = Math.max(1, fullMessages.size() - 10);
         recentMessages.addAll(fullMessages.subList(start, fullMessages.size()));
 
+        // Debug: Verificar si la clave API está disponible
+        System.out.println("DEBUG - API Key disponible: " + (apiKey != null && !apiKey.isEmpty()));
+        System.out.println("DEBUG - API Key length: " + (apiKey != null ? apiKey.length() : 0));
+        System.out.println("DEBUG - API Key starts with: " + (apiKey != null && apiKey.length() > 10 ? apiKey.substring(0, 10) + "..." : "null"));
+
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
