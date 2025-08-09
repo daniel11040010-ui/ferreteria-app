@@ -32,18 +32,21 @@ public class ChatbotController {
             "TIPOS: Esmalte sintético, base automotriz, laca piroxilina, masilla fina, barniz poliuretano y selladores. " +
             "COLORES: Blanco, gris, marfil, azul, verde, naranja, rojo, amarillo, turquesa, violeta, melón, fucsia, marrón, coral, esmeralda, acuarela, sábila, rosado, blanco humo y miel.";
 
-    private static final String SYSTEM_MESSAGE = "Eres el asistente virtual de Matizados Cris, una tienda de pinturas en Lima, Perú. " +
-            "IMPORTANTE: Solo responde preguntas relacionadas con la tienda, sus productos, servicios, ubicación, contacto y horarios. " +
-            "Si te preguntan algo fuera del contexto de la tienda (matemáticas, fecha actual, clima, otros negocios, etc.), responde: " +
-            "'Soy el asistente de Matizados Cris. Te puedo ayudar con información sobre pinturas, ubicación, horarios y contacto. ¿En qué puedo asistirte sobre nuestra tienda?' " +
-            "INSTRUCCIONES ESPECÍFICAS: " +
-            "1. Para preguntas sobre UBICACIÓN/DIRECCIÓN: Responde 'Estamos ubicados en la Avenida Próceres de la Independencia 2078, rejas negras, casa color naranja. Cerca de la estación Los Postes de la Línea 1 del Metro.' " +
-            "2. Para preguntas sobre CONTACTO/REDES SOCIALES/COMUNICACIÓN: Responde 'Puedes escribirnos o llamarnos por WhatsApp al 942671817 para consultas y pedidos.' " +
-            "3. Para preguntas sobre HORARIOS: Responde 'Atendemos de lunes a domingo de 9:00 AM a 8:00 PM.' " +
-            "4. Para PRODUCTOS/MARCAS/COLORES: Usa la información del contexto. " +
-            "5. Para PRECIOS: Di 'Consulta los precios actualizados en nuestro catálogo o escríbenos al WhatsApp 942671817.' " +
-            "6. Sé amable, conciso y profesional. " +
-            "7. Mantente siempre en el contexto de la tienda de pinturas. " +
+    private static final String SYSTEM_MESSAGE = "Eres el asistente técnico especializado de Matizados Cris, una tienda de pinturas en Lima, Perú. " +
+            "ESPECIALIDAD: Respondes preguntas técnicas sobre pinturas, cálculos de cantidad, recomendaciones de productos y aplicación. " +
+            "CONOCIMIENTO TÉCNICO: " +
+            "- Cálculo de pintura: 1 galón rinde aproximadamente 35-40 m² con una mano. Para dos manos, dividir entre 2. " +
+            "- Superficies: Paredes lisas rinden más, paredes rugosas o porosas necesitan más pintura. " +
+            "- Tipos: Esmalte sintético para madera/metal, látex para paredes interiores, anticorrosivo para metal. " +
+            "- Preparación: Lijar, limpiar, aplicar base si es necesario. " +
+            "- Dilución: Esmalte sintético 10-15% con thinner, látex 5-10% con agua. " +
+            "- Tiempo de secado: Esmalte 4-6 horas entre manos, látex 2-4 horas. " +
+            "INSTRUCCIONES: " +
+            "1. Proporciona cálculos precisos cuando te pregunten cantidades. " +
+            "2. Recomienda productos específicos de nuestras marcas según la necesidad. " +
+            "3. Da consejos técnicos de aplicación cuando sea relevante. " +
+            "4. Siempre menciona que pueden contactarnos al WhatsApp 942671817 para asesoría personalizada. " +
+            "5. Mantente en el contexto de pinturas y productos de ferretería. " +
             "CONTEXTO DE LA TIENDA: " + STORE_CONTEXT;
 
     private final Map<String, List<Map<String, String>>> conversationMemory = new ConcurrentHashMap<>();
@@ -63,12 +66,6 @@ public class ChatbotController {
             return ResponseEntity.ok(Map.of("respuesta", "Historial de conversación reiniciado."));
         }
 
-        // Verificar respuestas directas para preguntas específicas
-        String directResponse = getDirectResponse(userMessage);
-        if (directResponse != null) {
-            return ResponseEntity.ok(Map.of("respuesta", directResponse));
-        }
-
         String lowerMessage = userMessage.toLowerCase().trim();
         
         // Verificar si es una pregunta fuera del contexto de la tienda
@@ -76,8 +73,17 @@ public class ChatbotController {
             return ResponseEntity.ok(Map.of("respuesta", "Soy el asistente de Matizados Cris, una tienda de pinturas. Te puedo ayudar con información sobre nuestros productos, ubicación, horarios y contacto. ¿En qué puedo asistirte sobre nuestra tienda?"));
         }
         
-        // Verificar si es una pregunta técnica sobre pinturas
-        if (!isPaintTechnicalQuestion(lowerMessage)) {
+        // Verificar si es una pregunta técnica sobre pinturas (PRIORIDAD ALTA)
+        if (isPaintTechnicalQuestion(lowerMessage)) {
+            // Es una pregunta técnica - continuar al flujo de OpenAI
+        } else {
+            // No es técnica, verificar respuestas directas
+            String directResponse = getDirectResponse(userMessage);
+            if (directResponse != null) {
+                return ResponseEntity.ok(Map.of("respuesta", directResponse));
+            }
+            
+            // No hay respuesta directa y no es técnica
             return ResponseEntity.ok(Map.of("respuesta", "Te puedo ayudar con preguntas técnicas sobre pinturas, cálculos de cantidad, recomendaciones de productos, y aplicación. También puedes preguntarme sobre nuestra ubicación, horarios y contacto. ¿En qué específicamente sobre pinturas te puedo ayudar?"));
         }
 
