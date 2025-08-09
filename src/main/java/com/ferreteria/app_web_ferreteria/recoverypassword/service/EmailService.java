@@ -121,7 +121,7 @@ public class EmailService {
             Context context = new Context();
             Map<String, Object> model = new HashMap<>();
             model.put("userName", dto.getUserName());
-            model.put("url", "http://localhost:4200/changepassword?tokenPassword=" + dto.getTokenPassword()
+            model.put("url", "https://ferreteriachris.vercel.app/changepassword?tokenPassword=" + dto.getTokenPassword()
                     +"#/changepassword?tokenPassword="+dto.getTokenPassword());
             context.setVariables(model);
             String htmlText = templateEngine.process("email-template", context);
