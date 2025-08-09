@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -18,7 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatbotController {
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-    private static final String API_KEY = "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";
+    
+    @Value("${openai.api.key}")
+    private String apiKey;
 
     private static final String STORE_CONTEXT = "Matizados Cris es una tienda de pinturas ubicada en Lima, Perú. " +
             "UBICACIÓN: Avenida Próceres de la Independencia 2078, rejas negras, casa color naranja. Cerca de la estación Los Postes de la Línea 1 del Metro de Lima. " +
@@ -85,7 +88,7 @@ public class ChatbotController {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(API_KEY);
+        headers.setBearerAuth(apiKey);
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", "gpt-4o-mini");
