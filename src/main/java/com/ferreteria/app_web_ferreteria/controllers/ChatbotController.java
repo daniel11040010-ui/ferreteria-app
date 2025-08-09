@@ -69,6 +69,19 @@ public class ChatbotController {
             return ResponseEntity.ok(Map.of("respuesta", directResponse));
         }
 
+        String lowerMessage = userMessage.toLowerCase().trim();
+        
+        // Verificar si es una pregunta fuera del contexto de la tienda
+        if (isOutOfContext(lowerMessage)) {
+            return ResponseEntity.ok(Map.of("respuesta", "Soy el asistente de Matizados Cris, una tienda de pinturas. Te puedo ayudar con información sobre nuestros productos, ubicación, horarios y contacto. ¿En qué puedo asistirte sobre nuestra tienda?"));
+        }
+        
+        // Verificar si es una pregunta técnica sobre pinturas
+        if (!isPaintTechnicalQuestion(lowerMessage)) {
+            return ResponseEntity.ok(Map.of("respuesta", "Te puedo ayudar con preguntas técnicas sobre pinturas, cálculos de cantidad, recomendaciones de productos, y aplicación. También puedes preguntarme sobre nuestra ubicación, horarios y contacto. ¿En qué específicamente sobre pinturas te puedo ayudar?"));
+        }
+
+        // Es una pregunta técnica sobre pinturas - usar OpenAI
         conversationMemory.putIfAbsent(clientIP, new ArrayList<>());
         List<Map<String, String>> fullMessages = conversationMemory.get(clientIP);
 
@@ -84,11 +97,6 @@ public class ChatbotController {
 
         int start = Math.max(1, fullMessages.size() - 10);
         recentMessages.addAll(fullMessages.subList(start, fullMessages.size()));
-
-        // Debug: Verificar si la clave API está disponible
-        System.out.println("DEBUG - API Key disponible: " + (apiKey != null && !apiKey.isEmpty()));
-        System.out.println("DEBUG - API Key length: " + (apiKey != null ? apiKey.length() : 0));
-        System.out.println("DEBUG - API Key starts with: " + (apiKey != null && apiKey.length() > 10 ? apiKey.substring(0, 10) + "..." : "null"));
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -154,7 +162,37 @@ public class ChatbotController {
             return "Atendemos de lunes a domingo de 9:00 AM a 8:00 PM.";
         }
         
+        // Preguntas sobre productos
+        if (message.contains("producto") || message.contains("productos") || 
+            message.contains("pintura") || message.contains("pinturas") ||
+            message.contains("marca") || message.contains("marcas") ||
+            message.contains("color") || message.contains("colores") ||
+            message.contains("tipo") || message.contains("tipos") ||
+            message.contains("venden") || message.contains("tienen") ||
+            message.contains("esmalte") || message.contains("barniz")) {
+            return "Vendemos pinturas para paredes, madera y metal. Nuestras marcas incluyen Anypsa, CPP, Losaro, Vencedor, Multicolor, Diamante, Jhomeron, Paracas, Tekno y Majestad. Ofrecemos esmalte sintético, base automotriz, laca piroxilina, masilla fina, barniz poliuretano y selladores en múltiples colores. ¡Escríbenos al WhatsApp 942671817 para más detalles!";
+        }
+        
         return null; // No hay respuesta directa, usar OpenAI
+    }
+
+    private boolean isPaintTechnicalQuestion(String message) {
+        // Preguntas técnicas sobre pinturas que requieren cálculos o conocimiento especializado
+        return message.contains("cuanto") || message.contains("cuánto") ||
+               message.contains("cantidad") || message.contains("galones") ||
+               message.contains("litros") || message.contains("metros") ||
+               message.contains("calcular") || message.contains("necesito") ||
+               message.contains("mejor") || message.contains("recomend") ||
+               message.contains("diferencia") || message.contains("tipo") ||
+               message.contains("superficie") || message.contains("pared") ||
+               message.contains("habitación") || message.contains("habitacion") ||
+               message.contains("casa") || message.contains("exterior") ||
+               message.contains("interior") || message.contains("madera") ||
+               message.contains("metal") || message.contains("como") ||
+               message.contains("cómo") || message.contains("aplicar") ||
+               message.contains("preparar") || message.contains("diluir") ||
+               message.contains("tiempo") || message.contains("secar") ||
+               message.contains("capas") || message.contains("rendimiento");
     }
 
     private boolean isOutOfContext(String message) {
