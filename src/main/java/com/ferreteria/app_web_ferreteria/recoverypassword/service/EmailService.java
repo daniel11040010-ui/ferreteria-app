@@ -47,7 +47,7 @@ public class EmailService {
     UserRepository userRepository;
 
     @Autowired
-    ClienteRepository clienteRepository; // ⭐ AGREGAR ESTO
+    ClienteRepository clienteRepository;
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -82,7 +82,7 @@ public class EmailService {
         return sendEmailToUser(usuarioOpt.get());
     }
 
-    // ⭐ MÉTODO PARA ENVIAR EMAIL A CLIENTE
+    // ⭐ MÉTODO PARA ENVIAR EMAIL A CLIENTE (IGUAL QUE USER)
     private ApiResponse sendEmailToCliente(Cliente cliente) {
         EmailValuesDTO dto = new EmailValuesDTO();
         dto.setMailFrom(mailFrom);
@@ -94,8 +94,8 @@ public class EmailService {
         String tokenPassword = uuid.toString();
         dto.setTokenPassword(tokenPassword);
         
-        // ⭐ GUARDAR TOKEN EN CLIENTE
-        cliente.setContrasena(tokenPassword);
+        // ⭐ IGUAL QUE USER: TOKEN EN CAMPO SEPARADO (SIN ENCRIPTAR)
+        cliente.setTokenPassword(tokenPassword);
         clienteRepository.save(cliente);
 
         sendEmail(dto);
@@ -103,7 +103,7 @@ public class EmailService {
         return new ApiResponse("Te hemos enviado un correo");
     }
 
-    // ⭐ MÉTODO PARA ENVIAR EMAIL A USUARIO
+    // ⭐ MÉTODO PARA ENVIAR EMAIL A USUARIO (COMO ANTES)
     private ApiResponse sendEmailToUser(User user) {
         EmailValuesDTO dto = new EmailValuesDTO();
         dto.setMailFrom(mailFrom);
@@ -123,6 +123,8 @@ public class EmailService {
         return new ApiResponse("Te hemos enviado un correo");
     }
 
+
+
     public ApiResponsePassWord changePassword(ChangePasswordDTO dto) {
         LOGGER.info("Cambiando contraseña");
 
@@ -131,19 +133,19 @@ public class EmailService {
             return new ApiResponsePassWord("Las contraseñas no coinciden", HttpStatus.BAD_REQUEST);
         }
 
-        // ⭐ BUSCAR PRIMERO EN CLIENTES
-        Optional<Cliente> clienteOpt = clienteRepository.findByContrasena(dto.getTokenPassword());
+        // ⭐ BUSCAR PRIMERO EN CLIENTES (IGUAL QUE USER)
+        Optional<Cliente> clienteOpt = clienteRepository.findByTokenPassword(dto.getTokenPassword());
         if (clienteOpt.isPresent()) {
             Cliente cliente = clienteOpt.get();
-            String newPassword = passwordEncoder.encode(dto.getPassword());
-            cliente.setContrasena(newPassword);
-            cliente.setContrasena(null);
+            String newPassword = passwordEncoder.encode(dto.getPassword()); // ⭐ CONTRASEÑA ENCRIPTADA
+            cliente.setContrasena(newPassword); // ⭐ IGUAL QUE user.setPassword()
+            cliente.setTokenPassword(null); // ⭐ IGUAL QUE user.setTokenPassword(null)
             clienteRepository.save(cliente);
             LOGGER.info("Contraseña actualizada para el cliente {}", cliente.getNombre());
             return new ApiResponsePassWord("Contraseña actualizada correctamente.", HttpStatus.OK);
         }
 
-        // ⭐ SI NO ENCUENTRA EN CLIENTES, BUSCAR EN USUARIOS
+        // ⭐ SI NO ENCUENTRA EN CLIENTES, BUSCAR EN USUARIOS (COMO ANTES)
         Optional<User> userOpt = userRepository.findByTokenPassword(dto.getTokenPassword());
         if (!userOpt.isPresent()) {
             LOGGER.warn("No se encontró usuario ni cliente con token {}", dto.getTokenPassword());
@@ -160,8 +162,9 @@ public class EmailService {
         return new ApiResponsePassWord("Contraseña actualizada correctamente.", HttpStatus.OK);
     }
 
+
+
     public void sendEmail(EmailValuesDTO dto) {
-        // ⭐ ESTE MÉTODO QUEDA IGUAL
         LOGGER.info("Enviando correo electrónico");
 
         MimeMessage message = javaMailSender.createMimeMessage();
@@ -186,4 +189,5 @@ public class EmailService {
             LOGGER.error("Error al enviar el correo electrónico", e);
         }
     }
+
 }

@@ -18,6 +18,7 @@ public class Cliente {
     private String apellido;
     private String correo;
     private String contrasena;
+    private String tokenPassword; // Para recuperación de contraseña
     private String telefono;
     private String documentoIdentidad;
     private String direccion;
