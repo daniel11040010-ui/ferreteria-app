@@ -1,3 +1,34 @@
+package com.ferreteria.app_web_ferreteria.recoverypassword.service;
+
+
+import com.ferreteria.app_web_ferreteria.model.Cliente;
+import com.ferreteria.app_web_ferreteria.recoverypassword.dto.ChangePasswordDTO;
+import com.ferreteria.app_web_ferreteria.recoverypassword.dto.EmailValuesDTO;
+import com.ferreteria.app_web_ferreteria.repository.ClienteRepository;
+import com.ferreteria.app_web_ferreteria.security.dto.ApiResponse;
+import com.ferreteria.app_web_ferreteria.security.dto.ApiResponsePassWord;
+import com.ferreteria.app_web_ferreteria.security.entity.User;
+import com.ferreteria.app_web_ferreteria.security.exceptions.CustomException;
+import com.ferreteria.app_web_ferreteria.security.repository.UserRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
 @Service
 public class EmailService {
 
@@ -64,7 +95,7 @@ public class EmailService {
         dto.setTokenPassword(tokenPassword);
         
         // ⭐ GUARDAR TOKEN EN CLIENTE
-        cliente.setTokenPassword(tokenPassword);
+        cliente.setContrasena(tokenPassword);
         clienteRepository.save(cliente);
 
         sendEmail(dto);
@@ -101,12 +132,12 @@ public class EmailService {
         }
 
         // ⭐ BUSCAR PRIMERO EN CLIENTES
-        Optional<Cliente> clienteOpt = clienteRepository.findByTokenPassword(dto.getTokenPassword());
+        Optional<Cliente> clienteOpt = clienteRepository.findByContrasena(dto.getTokenPassword());
         if (clienteOpt.isPresent()) {
             Cliente cliente = clienteOpt.get();
             String newPassword = passwordEncoder.encode(dto.getPassword());
             cliente.setContrasena(newPassword);
-            cliente.setTokenPassword(null);
+            cliente.setContrasena(null);
             clienteRepository.save(cliente);
             LOGGER.info("Contraseña actualizada para el cliente {}", cliente.getNombre());
             return new ApiResponsePassWord("Contraseña actualizada correctamente.", HttpStatus.OK);

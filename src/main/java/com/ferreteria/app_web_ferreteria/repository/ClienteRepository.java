@@ -15,4 +15,5 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     boolean existsByDocumentoIdentidad(String documentoIdentidad);
     boolean existsByNombreAndApellido(String nombre, String apellido);
     Optional<Cliente> findByCorreo(String correo);
+    Optional<Cliente> findByContrasena(String contrasena);
 } 
